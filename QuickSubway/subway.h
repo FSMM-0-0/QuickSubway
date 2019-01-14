@@ -2,8 +2,8 @@
 #include "stdafx.h"
 
 using namespace std;
-//地铁站类
-class Node
+
+class Node  //地铁站类
 {
 private:
 	int id;
@@ -12,8 +12,8 @@ public:
 	string name;
 	Node(int _id = 0, int _x = 0, int _y = 0, string _name = NULL) : id(_id), x(_x), y(_y), name(_name){}
 };
-//地铁线类
-class Line
+
+class Line  //地铁线类
 {
 private:
 	int num;
@@ -36,6 +36,7 @@ private:
 	int line_num;
 	map<string, int> mp_line; //地铁站线对应id
 	vector<pair<int, int>> graph[350];  //地铁线路图
+
 	//dijkstra最短路
 	bool vis[350];
 	static int dis[350];
@@ -46,8 +47,21 @@ private:
 		}
 	};
 	priority_queue<pair<int, int>, vector<pair<int, int>>, cmp> que;
+
+	//euler
+	int euler_start;
+	int euler_edge;
+	int path_cot;
+	struct Node_Edge {
+		int to;
+		int name;
+	}euler_graph[350][2000], node_edge;
+	int euler_path[2000];
+	bool euler_vis[2000];
+	void Euler_dfs(int st);
 public:
 	Subway();
 	void GetLine(string line);  //得到line线上的所有站
 	void Dijkstra(string s_node, string e_node); //求从s到e的站数最少线路
+	void Euler(string s_node); //从s开始站点全遍历
 };
