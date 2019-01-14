@@ -4,22 +4,6 @@
 using namespace std;
 
 //@Author:ZhuJingjing
-//@Description:Euler回路dfs
-//@Prameter:
-//@Return:
-//@Date:2019-1-13
-void Subway::Euler_dfs(int st)
-{
-	for (int i = 1; i <= euler_edge; i++) {
-		if (!euler_vis[i] && euler_graph[st][i].to) {
-			euler_vis[i] = true;
-			Euler_dfs(euler_graph[st][i].to);
-			euler_path[++path_cot] = st;
-		}
-	}
-}
-
-//@Author:ZhuJingjing
 //@Description:构造函数，读取地铁文件信息
 //@Prameter:
 //@Return:
@@ -108,11 +92,12 @@ void Subway::GetLine(string tmp_line)
 
 //@Author:ZhuJingjing
 //@Description:dijkstra输出s_node到e_node的站数最少线路
-//@Prameter:起点和终点站名
+//@Prameter:起点和终点站名,是否换乘 true or false
 //@Return:
 //@Date:2019-1-12
+//@Update:2019-1-14
 int Subway::dis[350];
-void Subway::Dijkstra(string s_node, string e_node)
+void Subway::Dijkstra(string s_node, string e_node, bool exchange)
 {	
 	if (mp_node.find(s_node) == mp_node.end() || mp_node.find(e_node) == mp_node.end()) {
 		cout << "未找到对应站名" << endl;
@@ -142,6 +127,11 @@ void Subway::Dijkstra(string s_node, string e_node)
 			to = graph[top.first][i];
 			if (!vis[to.first]) {
 				int tmp = dis[top.first] + 1;
+
+				//换乘+3的情况
+				if (exchange && path[top.first].second != 0 && path[top.first].second != to.second)
+					tmp += 3;
+
 				if (tmp < dis[to.first]) {
 					dis[to.first] = tmp;
 					que.push(to);
@@ -180,11 +170,31 @@ void Subway::Dijkstra(string s_node, string e_node)
 }
 
 //@Author:ZhuJingjing
-//@Description:Euler回路求全站点遍历
-//@Prameter:起点站名
+//@Description:Euler回路dfs
+//@Prameter:当前站st编号,是否换乘 true or false
 //@Return:
 //@Date:2019-1-13
-void Subway::Euler(string s_node)
+void Subway::Euler_dfs(int st)
+{
+	for (int i = 1; i <= euler_edge; i++) {
+		if (!euler_vis[i] && euler_graph[st][i].to) {
+			euler_vis[i] = true;
+			Euler_dfs(euler_graph[st][i].to);
+			node_edge.to = st; node_edge.name = euler_graph[st][i].name;
+			euler_path[++path_cot] = node_edge;
+			if (euler_path[path_cot - 1].name != 0 && euler_path[path_cot].name != euler_path[path_cot - 1].name) 
+				add_cot += 3;
+		}
+	}
+}
+
+//@Author:ZhuJingjing
+//@Description:Euler回路求全站点遍历
+//@Prameter:起点站名,是否换乘+3 true or false
+//@Return:
+//@Date:2019-1-13
+//@Update:2019-1-14
+void Subway::Euler(string s_node, bool exchange)
 {
 	if (mp_node.find(s_node) == mp_node.end()) {
 		cout << "未找到对应站名" << endl;
@@ -193,13 +203,25 @@ void Subway::Euler(string s_node)
 
 	memset(euler_vis, false, sizeof(euler_vis));
 	memset(euler_path, 0, sizeof(euler_path));
-	path_cot = 0;
+	path_cot = 0; add_cot = 0;
 	euler_start = mp_node[s_node];
-	euler_path[++path_cot] = euler_start;
+	node_edge.to = euler_start; node_edge.name = 0;
+	euler_path[++path_cot] = node_edge;
 	Euler_dfs(euler_start);
-	cout << path_cot << endl;
+
+	if (exchange) {
+		cout << path_cot + add_cot << endl;
+	}
+	else {
+		cout << path_cot << endl;
+	}
+
 	for (int i = path_cot; i >= 1; i--) {
-		cout << node[euler_path[i]]->name << endl;
+		cout << node[euler_path[i].to]->name;
+		if (i != path_cot && euler_path[i].name && euler_path[i+1].name && euler_path[i].name != euler_path[i + 1].name)
+			cout << " 换乘" << line[euler_path[i].name]->name << endl;
+		else
+			cout << endl;
 		//cout << i << ": " << node[euler_path[i]]->name << endl;
 	}
 }

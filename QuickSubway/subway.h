@@ -49,19 +49,20 @@ private:
 	priority_queue<pair<int, int>, vector<pair<int, int>>, cmp> que;
 
 	//euler
-	int euler_start;
-	int euler_edge;
-	int path_cot;
+	int euler_start;  //起始点
+	int euler_edge;  //欧拉图中的边编号
+	int path_cot;   //输出路径，即走过点的个数
+	int add_cot;    //换乘+3的附加点个数
 	struct Node_Edge {
 		int to;
 		int name;
-	}euler_graph[350][2000], node_edge;
-	int euler_path[2000];
+	}euler_graph[350][2000], node_edge, euler_path[2000];
+	//  欧拉图，                            路径记录
 	bool euler_vis[2000];
 	void Euler_dfs(int st);
 public:
 	Subway();
 	void GetLine(string line);  //得到line线上的所有站
-	void Dijkstra(string s_node, string e_node); //求从s到e的站数最少线路
-	void Euler(string s_node); //从s开始站点全遍历
+	void Dijkstra(string s_node, string e_node, bool exchange); //求从s到e的站数最少线路
+	void Euler(string s_node, bool exchange); //从s开始站点全遍历
 };
