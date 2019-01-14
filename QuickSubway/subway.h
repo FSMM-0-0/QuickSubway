@@ -30,10 +30,10 @@ class Subway
 {
 private:
 	Node *node[350];  //地铁站点
-	int node_num;
+	int node_num;    //站点总个数
 	map<string, int> mp_node;  //站点对应id
 	Line *line[30];  //地铁站线
-	int line_num;
+	int line_num;  //线路总数
 	map<string, int> mp_line; //地铁站线对应id
 	vector<pair<int, int>> graph[350];  //地铁线路图
 
@@ -56,13 +56,19 @@ private:
 	struct Node_Edge {
 		int to;
 		int name;
+		int from;
 	}euler_graph[350][2000], node_edge, euler_path[2000];
 	//  欧拉图，                            路径记录
 	bool euler_vis[2000];
 	void Euler_dfs(int st);
+
+	//test
+	map<pair<int, int>, bool> edge_exist;
+	bool node_exist[350];
 public:
 	Subway();
 	void GetLine(string line);  //得到line线上的所有站
 	void Dijkstra(string s_node, string e_node, bool exchange); //求从s到e的站数最少线路
 	void Euler(string s_node, bool exchange); //从s开始站点全遍历
+	void Test(string filename);  //测试是否满足全遍历
 };

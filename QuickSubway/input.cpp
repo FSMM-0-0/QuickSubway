@@ -26,5 +26,9 @@ void Input(int argc, char *argv[])
 		string start = argv[2];
 		subway.Euler(start, true);
 	}
+	else if (strcmp(argv[1], "/z") == 0) {  //≤‚ ‘
+		string filename = argv[2];
+		subway.Test(filename);
+	}
 	return;
 }

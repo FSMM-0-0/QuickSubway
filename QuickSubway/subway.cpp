@@ -11,7 +11,6 @@ using namespace std;
 Subway::Subway()
 {
 	ifstream infile;
-	ofstream outfile;
 
 	euler_edge = 0;
 	memset(euler_graph, 0, sizeof(euler_graph));
@@ -24,7 +23,11 @@ Subway::Subway()
 	char type;
 	int id, x, y, num;
 	string name;
-	node_num = 0; line_num = 0; mp_line.clear();
+
+	line_num = 0;
+	node_num = 0;
+	mp_line.clear();
+	edge_exist.clear();
 
 	while (!infile.eof()){
 		infile >> type;
@@ -46,21 +49,36 @@ Subway::Subway()
 		}
 		else if (type == '@') {  //图
 			infile >> x >> y >> name;
+
+			//dijkstra
 			graph[x].push_back(make_pair(y, mp_line[name]));
 			graph[y].push_back(make_pair(x, mp_line[name]));
 
+			//euler
 			node_edge.to = y; node_edge.name = mp_line[name];
 			euler_graph[x][++euler_edge] = node_edge;
 			node_edge.to = x; node_edge.name = mp_line[name];
 			euler_graph[y][euler_edge] = node_edge;
+
+			//test
+			edge_exist[make_pair(x, y)] = true;
+			edge_exist[make_pair(y, x)] = true;
 		}
 		else if (type == '-') {  //全遍历中要删的边
 			infile >> x >> y >> name;
+			
+			//dijkstra
 			graph[x].push_back(make_pair(y, mp_line[name]));
 			graph[y].push_back(make_pair(x, mp_line[name]));
+
+			//test
+			edge_exist[make_pair(x, y)] = true;
+			edge_exist[make_pair(y, x)] = true;
 		}
 		else if (type == '+') { //全遍历中要增加的边
 			infile >> x >> y >> name;
+
+			//euler
 			node_edge.to = y; node_edge.name = mp_line[name];
 			euler_graph[x][++euler_edge] = node_edge;
 			node_edge.to = x; node_edge.name = mp_line[name];
@@ -109,6 +127,7 @@ void Subway::Dijkstra(string s_node, string e_node, bool exchange)
 	int change[350];
 	memset(dis, INF, sizeof(dis));
 	memset(vis, false, sizeof(vis));
+	memset(change, 0, sizeof(change));
 	vector<pair<int, int>> path(350);
 	pair<int, int> top, to;
 	que.push(make_pair(s, 0));
@@ -180,12 +199,15 @@ void Subway::Euler_dfs(int st)
 		if (!euler_vis[i] && euler_graph[st][i].to) {
 			euler_vis[i] = true;
 			Euler_dfs(euler_graph[st][i].to);
-			node_edge.to = st; node_edge.name = euler_graph[st][i].name;
-			euler_path[++path_cot] = node_edge;
+			node_edge.to = euler_graph[st][i].to; node_edge.name = euler_graph[st][i].name;
+			if (i != euler_edge)
+				euler_path[++path_cot] = node_edge;
 			if (euler_path[path_cot - 1].name != 0 && euler_path[path_cot].name != euler_path[path_cot - 1].name) 
 				add_cot += 3;
 		}
 	}
+	int ddd = 0;
+	ddd++;
 }
 
 //@Author:ZhuJingjing
@@ -205,23 +227,121 @@ void Subway::Euler(string s_node, bool exchange)
 	memset(euler_path, 0, sizeof(euler_path));
 	path_cot = 0; add_cot = 0;
 	euler_start = mp_node[s_node];
+	Euler_dfs(euler_start);
 	node_edge.to = euler_start; node_edge.name = 0;
 	euler_path[++path_cot] = node_edge;
-	Euler_dfs(euler_start);
+
+	ofstream outfile;
+	outfile.open("all_node_visit.txt", ios::out);
+	if (!outfile.is_open()) {
+		cout << "地铁全遍历输出文件创建失败" << endl;
+		return;
+	}
 
 	if (exchange) {
 		cout << path_cot + add_cot << endl;
+		outfile << path_cot + add_cot << endl;
 	}
 	else {
 		cout << path_cot << endl;
+		outfile << path_cot << endl;
 	}
 
 	for (int i = path_cot; i >= 1; i--) {
-		cout << node[euler_path[i].to]->name;
-		if (i != path_cot && euler_path[i].name && euler_path[i+1].name && euler_path[i].name != euler_path[i + 1].name)
+		if (i != path_cot && euler_path[i].name && euler_path[i + 1].name && euler_path[i].name != euler_path[i + 1].name) {
 			cout << " 换乘" << line[euler_path[i].name]->name << endl;
-		else
+			//outfile << " 换乘" << line[euler_path[i].name]->name << endl;
+		}
+		else if (i != path_cot){
 			cout << endl;
+		}
+		cout << node[euler_path[i].to]->name;
+		outfile << node[euler_path[i].to]->name << endl;
+
 		//cout << i << ": " << node[euler_path[i]]->name << endl;
+	}
+	outfile.close();
+}
+
+//@Author:ZhuJingjing
+//@Description:测试全遍历输出
+//@Prameter:测试文件名
+//@Return:
+//@Date:2019-1-14
+void Subway::Test(string filename)
+{
+	ifstream infile;
+
+	infile.open("all_node_visit.txt", ios::in);
+	if (!infile.is_open()) {
+		cout << "地铁全遍历文件读取失败" << endl;
+		return;
+	}
+
+	memset(node_exist, false, sizeof(node_exist));
+
+	bool flag = true;
+	int test_path_cot;
+	int st_node = 0;
+	int ed_node = 0;
+	int last_node = 0;
+	int cot = -1;
+	string node_name;
+	while (!infile.eof()) {
+		if (cot == -1) {  //输入总站数
+			infile >> test_path_cot;
+			cot = 0;
+		}
+		else if (cot == 0){  //起点
+			infile >> node_name;
+			node_exist[mp_node[node_name]] = true;
+			last_node = mp_node[node_name];
+			st_node = mp_node[node_name];
+			cot++;
+		}
+		else {
+			infile >> node_name;
+			node_exist[mp_node[node_name]] = true;
+			//车站遍历次序不合理
+			if (edge_exist.find(make_pair(last_node, mp_node[node_name])) == edge_exist.end()) {
+				cout << "error: " << node[last_node]->name << " " << node_name << endl;
+				flag = false;
+				break;
+			}
+			last_node = mp_node[node_name];
+			ed_node = mp_node[node_name];
+			cot++;
+		}
+
+		infile.get();
+		if (infile.peek() == '\n') break;
+	}
+	infile.close();
+
+	bool output = false;
+	if (flag) {
+		for (int i = 1; i <= node_num; i++) {
+			if (node_exist[i] == false) {
+				if (!output) { //有遗漏的站点
+					cout << "false:" << endl;
+					output = true;
+				}
+				cout << node[i]->name << " ";
+			}
+		}
+		if (!output) {
+			if (test_path_cot != cot) { //车站的数量错误
+				cout << "false" << endl;
+			}
+			else if (st_node != ed_node) {  //起始点和终点不同
+				cout << "false" << endl;
+			}
+			else { //结果正确
+				cout << "true" << endl;
+			}
+		}
+		else {
+			cout << endl;
+		}
 	}
 }
