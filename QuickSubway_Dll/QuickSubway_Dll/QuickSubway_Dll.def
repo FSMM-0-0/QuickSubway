@@ -1,0 +1,4 @@
+LIBRARY QuickSubway_Dll
+
+EXPORTS
+ConsoleInterface

@@ -3,4 +3,4 @@
 
 using namespace std;
 
-void Input(int argc, char *argv[]);
+void Input(int type, char *input, char *output);
