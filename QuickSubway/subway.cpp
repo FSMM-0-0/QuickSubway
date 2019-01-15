@@ -1,7 +1,10 @@
 #include "subway.h"
-#include "stdafx.h"
+
 #define INF 0x3f3f3f3f
 using namespace std;
+
+int unit_test_cot = 0;
+string unit_test[100];
 
 //@Author:ZhuJingjing
 //@Description:构造函数，读取地铁文件信息
@@ -100,11 +103,15 @@ void Subway::GetLine(string tmp_line)
 	
 	if (mp_line.find(tmp_line) == mp_line.end()) {
 		cout << "未找到该线路" << endl;
+		unit_test[unit_test_cot++] = "未找到该线路";
+		unit_test_cot = 0;
 		return;
 	}
 	for (iter = line[mp_line[tmp_line]]->vec.begin(); iter != line[mp_line[tmp_line]]->vec.end(); iter++) {
 		cout << node[*iter]->name << endl;
+		unit_test[unit_test_cot++] = node[*iter]->name;
 	}
+	unit_test_cot = 0;
 	cout << endl;
 }
 
@@ -119,6 +126,8 @@ void Subway::Dijkstra(string s_node, string e_node, bool exchange)
 {	
 	if (mp_node.find(s_node) == mp_node.end() || mp_node.find(e_node) == mp_node.end()) {
 		cout << "未找到对应站名" << endl;
+		unit_test[unit_test_cot++] = "未找到对应站名";
+		unit_test_cot = 0;
 		return;
 	}
 
@@ -134,6 +143,8 @@ void Subway::Dijkstra(string s_node, string e_node, bool exchange)
 	dis[s] = 0;
 	path[s] = make_pair(s, 0);
 
+	int add_cot = 0;
+
 	bool flag = false;
 	while(!que.empty()) {
 	    top = que.top();
@@ -148,7 +159,7 @@ void Subway::Dijkstra(string s_node, string e_node, bool exchange)
 				int tmp = dis[top.first] + 1;
 
 				//换乘+3的情况
-				if (exchange && path[top.first].second != 0 && path[top.first].second != to.second)
+				if (exchange && path[top.first].second != 0 && path[top.first].second != to.second) 
 					tmp += 3;
 
 				if (tmp < dis[to.first]) {
@@ -180,12 +191,24 @@ void Subway::Dijkstra(string s_node, string e_node, bool exchange)
 	while (tmp != s) {
 		cot++;
 		str = '\n' + node[tmp]->name + str;
-		if (change[tmp])
+		if (change[tmp]) {
 			str = " 换乘" + line[path[tmp].second]->name + str;
+			add_cot += 3;
+		}
 		tmp = path[tmp].first;
 	}
 	str = node[tmp]->name + str;
-	cout << cot + 1 << endl << str;
+	if (exchange)
+		cout << add_cot + cot + 1 << endl << str;
+	else
+		cout << cot + 1 << endl << str;
+	unit_test[unit_test_cot++] = str;
+	unit_test_cot = 0;
+
+	if (exchange) {
+		unit_test[unit_test_cot++] = to_string(add_cot + cot + 1);
+		unit_test_cot = 0;
+	}
 }
 
 //@Author:ZhuJingjing
@@ -220,6 +243,8 @@ void Subway::Euler(string s_node, bool exchange)
 {
 	if (mp_node.find(s_node) == mp_node.end()) {
 		cout << "未找到对应站名" << endl;
+		unit_test[unit_test_cot++] = "未找到对应站名";
+		unit_test_cot = 0;
 		return;
 	}
 
@@ -241,10 +266,14 @@ void Subway::Euler(string s_node, bool exchange)
 	if (exchange) {
 		cout << path_cot + add_cot << endl;
 		outfile << path_cot + add_cot << endl;
+		unit_test[unit_test_cot++] = to_string(path_cot + add_cot);
+		unit_test_cot = 0;
 	}
 	else {
 		cout << path_cot << endl;
 		outfile << path_cot << endl;
+		unit_test[unit_test_cot++] = to_string(path_cot);
+		unit_test_cot = 0;
 	}
 
 	for (int i = path_cot; i >= 1; i--) {
@@ -272,7 +301,7 @@ void Subway::Test(string filename)
 {
 	ifstream infile;
 
-	infile.open("all_node_visit.txt", ios::in);
+	infile.open(filename, ios::in);
 	if (!infile.is_open()) {
 		cout << "地铁全遍历文件读取失败" << endl;
 		return;
@@ -305,6 +334,8 @@ void Subway::Test(string filename)
 			//车站遍历次序不合理
 			if (edge_exist.find(make_pair(last_node, mp_node[node_name])) == edge_exist.end()) {
 				cout << "error: " << node[last_node]->name << " " << node_name << endl;
+				string str = "error: " + node[last_node]->name + " " + node_name;
+				unit_test[0] = str;
 				flag = false;
 				break;
 			}
@@ -327,17 +358,21 @@ void Subway::Test(string filename)
 					output = true;
 				}
 				cout << node[i]->name << " ";
+				unit_test[0] = node[i]->name;
 			}
 		}
 		if (!output) {
 			if (test_path_cot != cot) { //车站的数量错误
 				cout << "false" << endl;
+				unit_test[0] = "false";
 			}
 			else if (st_node != ed_node) {  //起始点和终点不同
 				cout << "false" << endl;
+				unit_test[0] = "false";
 			}
 			else { //结果正确
 				cout << "true" << endl;
+				unit_test[0] = "true";
 			}
 		}
 		else {
