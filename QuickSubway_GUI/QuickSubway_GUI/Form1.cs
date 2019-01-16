@@ -149,7 +149,7 @@ namespace QuickSubway_GUI
 			next = null;
 			if (thread != null && thread.IsAlive) thread.Abort();
 			tBox_output.Clear();
-			Bitmap bitmap = new Bitmap(@"../../Resources/subway-map.jpg");
+			Bitmap bitmap = new Bitmap(@"subway-map.jpg");
 			Rectangle r = new Rectangle(0, 0,
 				this.pictureBox1.Size.Width, this.pictureBox1.Size.Height);
 			Form1.graphics.DrawImage(bitmap, r);
@@ -159,8 +159,10 @@ namespace QuickSubway_GUI
 		//
 		public Point Node_Location(Point point)
 		{
-			int x = (int)(point.X * rect.Width / 1440.0);
-			int y = (int)(point.Y * rect.Height / 860.0);
+			//int x = (int)(point.X * rect.Width / 1440.0);
+			//int y = (int)(point.Y * rect.Height / 860.0);
+			int x = (int)(point.X * pictureBox1.Width / 1050.0);
+			int y = (int)(point.Y * pictureBox1.Height / 667.0);
 			point.X = x;
 			point.Y = y;
 			return point;
@@ -266,6 +268,7 @@ namespace QuickSubway_GUI
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
 			string str = null;
+			int k = 0;
 			for (int i = 1; i < size; i++)
 			{
 				if (map.ContainsKey(sArray[i])) str += "\r\n";
@@ -348,12 +351,9 @@ namespace QuickSubway_GUI
 			Draw draw = new Draw();
 			for(int i = 0;i < size - 1; i++)
 			{
-                draw.DrawPointY(graphics, map[sArray[i]]);
-                //draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
-                //MessageBox.Show(Node_Location(map[sArray[i]]).X.ToString() + " " + Node_Location(map[sArray[i]]).Y.ToString());
-                tBox_output.AppendText(sArray[i] + '\n');
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
+				tBox_output.AppendText(sArray[i] + '\n');
 			}			
-
 
 		}
 
