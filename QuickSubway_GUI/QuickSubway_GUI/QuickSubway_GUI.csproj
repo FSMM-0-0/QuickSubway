@@ -67,6 +67,7 @@
     <Compile Include="All.Designer.cs">
       <DependentUpon>All.cs</DependentUpon>
     </Compile>
+    <Compile Include="AutoSizeFormClass.cs" />
     <Compile Include="Draw.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

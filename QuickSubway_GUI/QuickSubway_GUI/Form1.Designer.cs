@@ -41,6 +41,7 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.panel2 = new System.Windows.Forms.Panel();
+			this.label_sta = new System.Windows.Forms.Label();
 			this.label_next = new System.Windows.Forms.Label();
 			this.label_now = new System.Windows.Forms.Label();
 			this.label3 = new System.Windows.Forms.Label();
@@ -85,7 +86,6 @@
 			this.all_sta = new System.Windows.Forms.ToolStripMenuItem();
 			this.pictureBox1 = new System.Windows.Forms.PictureBox();
 			this.timer1 = new System.Windows.Forms.Timer(this.components);
-			this.label_sta = new System.Windows.Forms.Label();
 			this.panel1.SuspendLayout();
 			this.panel2.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
@@ -125,22 +125,33 @@
 			this.panel2.Size = new System.Drawing.Size(242, 262);
 			this.panel2.TabIndex = 15;
 			// 
+			// label_sta
+			// 
+			this.label_sta.AutoSize = true;
+			this.label_sta.Font = new System.Drawing.Font("隶书", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+			this.label_sta.ForeColor = System.Drawing.Color.DarkRed;
+			this.label_sta.Location = new System.Drawing.Point(130, 104);
+			this.label_sta.Name = "label_sta";
+			this.label_sta.Size = new System.Drawing.Size(45, 29);
+			this.label_sta.TabIndex = 12;
+			this.label_sta.Text = "00";
+			// 
 			// label_next
 			// 
-			this.label_next.Font = new System.Drawing.Font("楷体", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-			this.label_next.Location = new System.Drawing.Point(105, 190);
+			this.label_next.Font = new System.Drawing.Font("楷体", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+			this.label_next.Location = new System.Drawing.Point(78, 191);
 			this.label_next.Name = "label_next";
-			this.label_next.Size = new System.Drawing.Size(123, 40);
+			this.label_next.Size = new System.Drawing.Size(150, 40);
 			this.label_next.TabIndex = 9;
 			this.label_next.Text = "魏公村";
 			this.label_next.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// label_now
 			// 
-			this.label_now.Font = new System.Drawing.Font("楷体", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-			this.label_now.Location = new System.Drawing.Point(105, 150);
+			this.label_now.Font = new System.Drawing.Font("楷体", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+			this.label_now.Location = new System.Drawing.Point(81, 151);
 			this.label_now.Name = "label_now";
-			this.label_now.Size = new System.Drawing.Size(123, 40);
+			this.label_now.Size = new System.Drawing.Size(147, 40);
 			this.label_now.TabIndex = 8;
 			this.label_now.Text = "魏公村";
 			this.label_now.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -148,7 +159,7 @@
 			// label3
 			// 
 			this.label3.Font = new System.Drawing.Font("楷体", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-			this.label3.Location = new System.Drawing.Point(20, 190);
+			this.label3.Location = new System.Drawing.Point(7, 190);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(79, 40);
 			this.label3.TabIndex = 7;
@@ -158,7 +169,7 @@
 			// label2
 			// 
 			this.label2.Font = new System.Drawing.Font("楷体", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-			this.label2.Location = new System.Drawing.Point(20, 150);
+			this.label2.Location = new System.Drawing.Point(6, 150);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(79, 40);
 			this.label2.TabIndex = 6;
@@ -189,7 +200,7 @@
 			// label7
 			// 
 			this.label7.Font = new System.Drawing.Font("宋体", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-			this.label7.Location = new System.Drawing.Point(13, 92);
+			this.label7.Location = new System.Drawing.Point(3, 92);
 			this.label7.Name = "label7";
 			this.label7.Size = new System.Drawing.Size(86, 58);
 			this.label7.TabIndex = 11;
@@ -501,17 +512,6 @@
 			// 
 			this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
 			// 
-			// label_sta
-			// 
-			this.label_sta.AutoSize = true;
-			this.label_sta.Font = new System.Drawing.Font("隶书", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-			this.label_sta.ForeColor = System.Drawing.Color.DarkRed;
-			this.label_sta.Location = new System.Drawing.Point(139, 104);
-			this.label_sta.Name = "label_sta";
-			this.label_sta.Size = new System.Drawing.Size(45, 29);
-			this.label_sta.TabIndex = 12;
-			this.label_sta.Text = "00";
-			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -527,6 +527,7 @@
 			this.MinimumSize = new System.Drawing.Size(1300, 820);
 			this.Name = "Form1";
 			this.Text = "Quick Subway";
+			this.Load += new System.EventHandler(this.Form1_Load);
 			this.panel1.ResumeLayout(false);
 			this.panel1.PerformLayout();
 			this.panel2.ResumeLayout(false);

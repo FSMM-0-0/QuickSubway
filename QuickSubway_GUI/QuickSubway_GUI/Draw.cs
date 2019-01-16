@@ -69,7 +69,7 @@ namespace QuickSubway_GUI
 		//
 		public void DrawPointG(Graphics g, Point p)
 		{
-			Pen pen = new Pen(Brushes.Green, 5);
+			Pen pen = new Pen(Color.FromArgb(0,255,0), 5);
 			Size size = new Size(5, 5);
 			Rectangle rectangle = new Rectangle(p, size);
 			g.DrawEllipse(pen, rectangle);

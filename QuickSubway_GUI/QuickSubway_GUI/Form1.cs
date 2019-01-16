@@ -31,20 +31,23 @@ namespace QuickSubway_GUI
 		public Size size;
 		public int sta;
 		public Thread thread;
-		public Dictionary<string, Point> map = new Dictionary<string, Point>(); 
-		System.Timers.Timer tim = new System.Timers.Timer();
+		public Thread thread2;
+		public Dictionary<string, Point> map = new Dictionary<string, Point>();
+		string now = null;
+		string next = null;
+
+		Rectangle rect = new Rectangle();
+
 
 		[DllImport("QuickSubway_Dll.dll", EntryPoint = "ConsoleInterface", CallingConvention =CallingConvention.Cdecl)]
 		public static extern void ConsoleInterface(int type, ref byte input, ref byte output);
 
-		void Timers_Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-		{
-			label_sta.Text = sta.ToString();
-		}
+		AutoSizeFormClass asc = new AutoSizeFormClass();
+
 		public Form1()
 		{
+			//加载控件
 			InitializeComponent();
-
 			//定时触发
 			timer1.Start();
 
@@ -57,10 +60,14 @@ namespace QuickSubway_GUI
 
 			this.tBox_output.Select(this.tBox_output.Text.Length, 1);
 			Form1.graphics = pictureBox1.CreateGraphics();
+			rect = Screen.GetWorkingArea(this);
+
+			//读取北京地铁信息
 			this.ReadFile();
 		}
+
 		//
-		//读取文件
+		//读取地铁信息文件
 		//
 		public void ReadFile()
 		{
@@ -81,108 +88,141 @@ namespace QuickSubway_GUI
 			streamReader.Close();
 
 		}
+		//
+		//重置地图
+		//
 		public void ResetMap()
 		{
+			sta = 0;
+			now = null;
+			next = null;
+			if (thread != null && thread.IsAlive) thread.Abort();
+			tBox_output.Clear();
 			Bitmap bitmap = new Bitmap(Resources.subway_map);
 			Rectangle r = new Rectangle(0, 0,
 				this.pictureBox1.Size.Width, this.pictureBox1.Size.Height);
 			Form1.graphics.DrawImage(bitmap, r);
 		}
 		//
+		//点坐标
+		//
+		public Point Node_Location(Point point)
+		{
+			int x = (int)(point.X * rect.Width / 1440.0);
+			int y = (int)(point.Y * rect.Height / 860.0);
+			point.X = x;
+			point.Y = y;
+			return point;
+		}
+		//
 		//全遍历绘图
 		//
-		public void DrawPicA(string ans)
+		public void DrawPicA(object obj)
 		{
+			string ans = obj.ToString();
 			ans = ans.Trim('\0');
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
-			int count = 0;
 			sta = 0;
 			Draw draw = new Draw();
-			//tim.Interval = 50;
-			//tim.Enabled = true;
-			//tim.Elapsed += new System.Timers.ElapsedEventHandler(Timers_Timer_Elapsed);
-			//MessageBox.Show(size.ToString());
-			draw.DrawPointY(graphics, map[sArray[1]]);
+			draw.DrawPointY(graphics, Node_Location(map[sArray[1]]));
 			Thread.Sleep(10);
 			for (int i = 2; i < size; i++)
 			{
 				if (map.ContainsKey(sArray[i]))
 				{
-					count++;
 					sta++;
-					label_sta.Text = count.ToString();
-					label_now.Text = sArray[i];
-					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, map[sArray[i - 1]]);
-					if (map.ContainsKey(sArray[i - 2])) draw.DrawPointG(graphics, map[sArray[i - 2]]);
-					draw.DrawPointY(graphics, map[sArray[i]]);
-					System.Threading.Thread.Sleep(10);
+					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, Node_Location(map[sArray[i - 1]]));
+					if (map.ContainsKey(sArray[i - 2])) draw.DrawPointG(graphics, Node_Location(map[sArray[i - 2]]));
+					draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
+					Thread.Sleep(10);
 				}
 				if (!map.ContainsKey(sArray[i]))
 				{
-					draw.DrawLine(graphics, map[sArray[i - 1]], map[sArray[i + 1]]);
-					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, map[sArray[i - 1]]);
-					tBox_output.AppendText(sArray[i - 1] + '\n');
-					tBox_output.AppendText(sArray[i] + '\n');
+					draw.DrawLine(graphics, Node_Location(map[sArray[i - 1]]), Node_Location(map[sArray[i + 1]]));
+					sta++;
+					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, Node_Location(map[sArray[i - 1]]));
+					next = sArray[i + 1];
+					now = sArray[i - 1];
 					i++;
 				}
 				else
 				{
-					draw.DrawLine(graphics, map[sArray[i - 1]], map[sArray[i]]);
-					tBox_output.AppendText(sArray[i - 1] + '\n');
+					next = sArray[i];
+					now = sArray[i - 1];
+					draw.DrawLine(graphics, Node_Location(map[sArray[i - 1]]), Node_Location(map[sArray[i]]));
 				}
 			}
+			sta++;
 			if (map.ContainsKey(sArray[size - 2])) draw.DrawPointG(graphics, map[sArray[size - 2]]);
 			else if (map.ContainsKey(sArray[size - 3])) draw.DrawPointG(graphics, map[sArray[size - 3]]);
-			draw.DrawPointY(graphics, map[sArray[size - 1]]);
-			tBox_output.AppendText(sArray[size - 1] + '\n');
-			System.Threading.Thread.Sleep(10);
-			draw.DrawPointG(graphics, map[sArray[size - 1]]);
+			draw.DrawPointY(graphics, Node_Location(map[sArray[size - 1]]));
+			Thread.Sleep(10);
+			draw.DrawPointG(graphics, Node_Location(map[sArray[size - 1]]));
 		}
 		//
 		//最短路绘图
 		//
-		public void DrawPicS(string ans)
+		public void DrawPicS(object obj)
 		{
+			string ans = obj.ToString();
 			ans = ans.Trim('\0');
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
-			int count = 0;
+			sta = 0;
 			Draw draw = new Draw();
-			//MessageBox.Show(size.ToString());
-			draw.DrawPointY(graphics, map[sArray[1]]);
-			System.Threading.Thread.Sleep(500);
+			draw.DrawPointY(graphics, Node_Location(map[sArray[1]]));
+			Thread.Sleep(500);
 			for (int i = 2; i < size; i++)
 			{
 				if (map.ContainsKey(sArray[i]))
 				{
-					count++;
-					label_sta.Text = count.ToString();
-					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, map[sArray[i - 1]]);
-					else if (map.ContainsKey(sArray[i - 2])) draw.DrawPointG(graphics, map[sArray[i - 2]]);
-					draw.DrawPointY(graphics, map[sArray[i]]);
-					System.Threading.Thread.Sleep(500);
+					sta++;
+					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, Node_Location(map[sArray[i - 1]]));
+					else if (map.ContainsKey(sArray[i - 2])) draw.DrawPointG(graphics, Node_Location(map[sArray[i - 2]]));
+					draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
+					Thread.Sleep(500);
 				}
 				if (!map.ContainsKey(sArray[i]))
 				{
-					draw.DrawLine(graphics, map[sArray[i - 1]], map[sArray[i + 1]]);
-					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, map[sArray[i - 1]]);
-					tBox_output.AppendText(sArray[i - 1] + '\n');
-					tBox_output.AppendText(sArray[i] + '\n');
+					draw.DrawLine(graphics, Node_Location(map[sArray[i - 1]]), Node_Location(map[sArray[i + 1]]));
+					sta++;
+					if (map.ContainsKey(sArray[i - 1])) draw.DrawPointG(graphics, Node_Location(map[sArray[i - 1]]));
+					next = sArray[i + 1];
+					now = sArray[i - 1];
 					i++;
 				}
 				else
 				{
-					draw.DrawLine(graphics, map[sArray[i - 1]], map[sArray[i]]);
-					tBox_output.AppendText(sArray[i - 1] + '\n');
+					next = sArray[i];
+					now = sArray[i - 1];
+					draw.DrawLine(graphics, Node_Location(map[sArray[i - 1]]), Node_Location(map[sArray[i]]));
 				}
 			}
-			if (map.ContainsKey(sArray[size - 2])) draw.DrawPointG(graphics, map[sArray[size - 2]]);
-			else if (map.ContainsKey(sArray[size - 3])) draw.DrawPointG(graphics, map[sArray[size - 3]]);
-			draw.DrawPointY(graphics, map[sArray[size - 1]]);
-			tBox_output.AppendText(sArray[size - 1] + '\n');
-			System.Threading.Thread.Sleep(500);
-			draw.DrawPointG(graphics, map[sArray[size - 1]]);
+			sta++;
+			if (map.ContainsKey(sArray[size - 2])) draw.DrawPointG(graphics, Node_Location(map[sArray[size - 2]]));
+			else if (map.ContainsKey(sArray[size - 3])) draw.DrawPointG(graphics, Node_Location(map[sArray[size - 3]]));
+			draw.DrawPointY(graphics, Node_Location(map[sArray[size - 1]]));
+			Thread.Sleep(500);
+			draw.DrawPointG(graphics, Node_Location(map[sArray[size - 1]]));
+		}
+		//
+		//输出文本路径信息
+		//
+		public void Output_sta(string ans)
+		{
+			ans = ans.Trim('\0');
+			string[] sArray = ans.Split(' ');
+			int size = sArray.Length;
+			string str = null;
+			int k = 0;
+			for (int i = 1; i < size; i++)
+			{
+				if (map.ContainsKey(sArray[i])) str += "\r\n";
+				else str += " ";
+				str += sArray[i];
+			}
+			tBox_output.AppendText(str);
 		}
 		//
 		//鼠标滚轮控制图片大小
@@ -254,12 +294,14 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for(int i = 0;i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}			
+
 		}
 
 		private void line_no2_Click(object sender, EventArgs e)
@@ -273,10 +315,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -292,10 +335,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointP(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -311,10 +355,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointP(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -330,10 +375,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -349,10 +395,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -368,10 +415,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -387,10 +435,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -406,10 +455,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -425,10 +475,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -444,10 +495,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -463,10 +515,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -482,10 +535,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -501,10 +555,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -520,10 +575,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -539,10 +595,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -558,10 +615,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -577,10 +635,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -596,10 +655,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -614,10 +674,11 @@ namespace QuickSubway_GUI
 			string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -632,10 +693,11 @@ namespace QuickSubway_GUI
 			string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -651,10 +713,11 @@ namespace QuickSubway_GUI
 			tBox_output.Clear();
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
+			sta = size - 1;
 			Draw draw = new Draw();
 			for (int i = 0; i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, map[sArray[i]]);
+				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
 				tBox_output.AppendText(sArray[i] + '\n');
 			}
 		}
@@ -666,13 +729,21 @@ namespace QuickSubway_GUI
 			ResetMap();
 			Shortest shortest_t = new Shortest();
 			shortest_t.ShowDialog();
-			string argv = shortest_t.start + " " + shortest_t.end;
-			byte[] byteInput = Encoding.Default.GetBytes(argv);
-			byte[] byteOutput = new byte[10240];
-			ConsoleInterface(3, ref byteInput[0], ref byteOutput[0]);
-			string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
-			tBox_output.Clear();
-			DrawPicS(ans);
+			if (shortest_t.start == null && shortest_t.end == null) { }
+			else if (map.ContainsKey(shortest_t.start) && map.ContainsKey(shortest_t.end))
+			{
+				string argv = shortest_t.start + " " + shortest_t.end;
+				byte[] byteInput = Encoding.Default.GetBytes(argv);
+				byte[] byteOutput = new byte[10240];
+				ConsoleInterface(3, ref byteInput[0], ref byteOutput[0]);
+				string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
+				tBox_output.Clear();
+				Output_sta(ans);
+				thread = new Thread(new ParameterizedThreadStart(DrawPicS));
+				thread.Start(ans);
+			}
+			else
+				MessageBox.Show("站点输入错误！");
 			shortest_t.Close();
 		}
 		//
@@ -683,13 +754,22 @@ namespace QuickSubway_GUI
 			ResetMap();
 			Shortest shortest_s = new Shortest();
 			shortest_s.ShowDialog();
-			string argv = shortest_s.start + " " + shortest_s.end;
-			byte[] byteInput = Encoding.Default.GetBytes(argv);
-			byte[] byteOutput = new byte[10240];
-			ConsoleInterface(2, ref byteInput[0], ref byteOutput[0]);
-			string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
-			tBox_output.Clear();
-			DrawPicS(ans);
+			if (shortest_s.start == null && shortest_s.end == null) { }
+			else if (map.ContainsKey(shortest_s.start) && map.ContainsKey(shortest_s.end))
+			{
+				string argv = shortest_s.start + " " + shortest_s.end;
+				byte[] byteInput = Encoding.Default.GetBytes(argv);
+				byte[] byteOutput = new byte[10240];
+				ConsoleInterface(2, ref byteInput[0], ref byteOutput[0]);
+				string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
+				tBox_output.Clear();
+				Output_sta(ans);
+				thread = new Thread(new ParameterizedThreadStart(DrawPicS));
+				thread.Start(ans);
+			}
+			else
+				MessageBox.Show("站点输入错误！");
+
 			shortest_s.Close();
 
 		}
@@ -701,13 +781,23 @@ namespace QuickSubway_GUI
 			ResetMap();
 			All all_t = new All();
 			all_t.ShowDialog();
-			string argv = all_t.Tag.ToString();
-			byte[] byteInput = Encoding.Default.GetBytes(argv);
-			byte[] byteOutput = new byte[10240];
-			ConsoleInterface(4, ref byteInput[0], ref byteOutput[0]);
-			string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
-			tBox_output.Clear();
-			DrawPicA(ans);
+			if (all_t.Tag == null) { }
+			else if (map.ContainsKey(all_t.Tag.ToString()))
+			{
+				string argv = all_t.Tag.ToString();
+				byte[] byteInput = Encoding.Default.GetBytes(argv);
+				byte[] byteOutput = new byte[10240];
+				ConsoleInterface(4, ref byteInput[0], ref byteOutput[0]);
+				string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
+				tBox_output.Clear();
+				Output_sta(ans);
+				thread = new Thread(new ParameterizedThreadStart(DrawPicA));
+				thread.Start(ans);
+			}
+			else
+			{
+				MessageBox.Show("站点输入错误！");
+			}	
 			all_t.Close();
 		}
 		//
@@ -718,24 +808,49 @@ namespace QuickSubway_GUI
 			ResetMap();
 			All all_s = new All();
 			all_s.ShowDialog();
-			string argv = all_s.Tag.ToString();
-			byte[] byteInput = Encoding.Default.GetBytes(argv);
-			byte[] byteOutput = new byte[10240];
-			ConsoleInterface(1, ref byteInput[0], ref byteOutput[0]);
-			string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
-			tBox_output.Clear();
-			DrawPicA(ans);
+			if (all_s.Tag == null) { }
+			else if (map.ContainsKey(all_s.Tag.ToString()))
+			{
+				string argv = all_s.Tag.ToString();
+				byte[] byteInput = Encoding.Default.GetBytes(argv);
+				byte[] byteOutput = new byte[10240];
+				ConsoleInterface(1, ref byteInput[0], ref byteOutput[0]);
+				string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
+				tBox_output.Clear();
+				Output_sta(ans);
+				thread = new Thread(new ParameterizedThreadStart(DrawPicA));
+				thread.Start(ans);
+				Output_sta(ans);
+			}
+			else
+			{
+				MessageBox.Show("站点输入错误！");
+			}
 			all_s.Close();
 		}
 		//
-		//更新时间显示
+		//更新显示信息（时间、站数、当前站、下一站）
 		//
 		private void timer1_Tick(object sender, EventArgs e)
 		{
 			DateTime dt = System.DateTime.Now;
 			label_time.Text = dt.ToLongTimeString();
 			label_sta.Text = sta.ToString();
+			label_now.Text = this.now;
+			label_next.Text = this.next;
 		}
 
+		private void Form1_Load(object sender, EventArgs e)
+		{
+			asc.controllInitializeSize(this, panel1);
+			Rectangle rect = new Rectangle();
+			rect = Screen.GetWorkingArea(this);
+			int width = (int)(1300.0 * rect.Width / 1440.0);
+			int height = (int)(820.0 * rect.Height / 860.0);
+			this.Width = width;
+			this.Height = height;
+			asc.controlAutoSize(this, panel1);
+			pictureBox1.BackgroundImageLayout = ImageLayout.Stretch;
+		}
 	}
 }

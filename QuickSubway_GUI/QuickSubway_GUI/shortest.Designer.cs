@@ -37,6 +37,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Shortest));
 			this.shortest_input1 = new System.Windows.Forms.TextBox();
 			this.shortest_btn = new System.Windows.Forms.Button();
 			this.shortest_input2 = new System.Windows.Forms.TextBox();
@@ -108,6 +109,7 @@
 			this.Controls.Add(this.shortest_btn);
 			this.Controls.Add(this.shortest_input1);
 			this.DoubleBuffered = true;
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "Shortest";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "最短路";
