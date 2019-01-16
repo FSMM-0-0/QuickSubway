@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Timers;
+using System.Runtime.InteropServices;
 
 namespace QuickSubway_GUI
 {
@@ -20,12 +21,28 @@ namespace QuickSubway_GUI
 		/// <summary>
 		/// 应用程序的主入口点。
 		/// </summary>
+		
+		[DllImport("QuickSubway_Dll.dll", EntryPoint = "ConsoleInterface", CallingConvention = CallingConvention.Cdecl)]
+		public static extern void ConsoleInterface(int type, ref byte input, ref byte output);
+
 		[STAThread]
-		static void Main()
+
+		static void Main(string[] args)
 		{
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Form1());
+			if(args.Length == 1 && args[0].ToLower() == "/g")
+			{
+				Application.EnableVisualStyles();
+				Application.SetCompatibleTextRenderingDefault(false);
+				Application.Run(new Form1());
+			}
+			if (args.Length == 2 && args[0].ToLower() == "/g")
+			{
+				Application.EnableVisualStyles();
+				Application.SetCompatibleTextRenderingDefault(false);
+				Application.Run(new Form1(args[1]));
+
+			}
+
 		}
 	}
 }

@@ -44,7 +44,29 @@ namespace QuickSubway_GUI
 
 		AutoSizeFormClass asc = new AutoSizeFormClass();
 
-		public Form1()
+		//public Form1()
+		//{
+		//	//加载控件
+		//	InitializeComponent();
+		//	//定时触发
+		//	timer1.Start();
+
+		//	//鼠标滚路、点击事件
+		//	this.MouseWheel += Form1_MouseWheel;
+		//	this.size = this.pictureBox1.Size;
+		//	this.pictureBox1.MouseUp += new MouseEventHandler(this.pictureBox1_MouseUp);
+		//	this.pictureBox1.MouseDown += new MouseEventHandler(this.pictureBox1_MouseDown);
+		//	this.pictureBox1.MouseMove += new MouseEventHandler(this.pictureBox1_MouseMove);
+
+		//	this.tBox_output.Select(this.tBox_output.Text.Length, 1);
+		//	Form1.graphics = pictureBox1.CreateGraphics();
+		//	rect = Screen.GetWorkingArea(this);
+
+		//	//读取北京地铁信息
+		//	this.ReadFile();
+		//}
+
+		public Form1(string str = "")
 		{
 			//加载控件
 			InitializeComponent();
@@ -64,14 +86,43 @@ namespace QuickSubway_GUI
 
 			//读取北京地铁信息
 			this.ReadFile();
+
+			if (str != "")
+			{
+				MessageBox.Show(str);
+				AllTravel(str);
+			}
 		}
 
+		public void AllTravel(string str)
+		{
+			ResetMap();
+			All all_t = new All();
+			if (str == null) { }
+			else if (map.ContainsKey(str))
+			{
+				string argv = str;
+				byte[] byteInput = Encoding.Default.GetBytes(argv);
+				byte[] byteOutput = new byte[10240];
+				ConsoleInterface(4, ref byteInput[0], ref byteOutput[0]);
+				string ans = System.Text.Encoding.Default.GetString(byteOutput, 0, byteOutput.Length);
+				tBox_output.Clear();
+				Output_sta(ans);
+				thread = new Thread(new ParameterizedThreadStart(DrawPicA));
+				thread.Start(ans);
+			}
+			else
+			{
+				MessageBox.Show("站点输入错误！");
+			}
+			all_t.Close();
+		}
 		//
 		//读取地铁信息文件
 		//
 		public void ReadFile()
 		{
-			FileStream file = new FileStream("beijing-subway1.txt",FileMode.Open, FileAccess.Read);
+			FileStream file = new FileStream("beijing-subway.txt",FileMode.Open, FileAccess.Read);
 			StreamReader streamReader = new StreamReader(file, System.Text.Encoding.Default);
 			streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
 			Point p = new Point();
@@ -98,7 +149,7 @@ namespace QuickSubway_GUI
 			next = null;
 			if (thread != null && thread.IsAlive) thread.Abort();
 			tBox_output.Clear();
-			Bitmap bitmap = new Bitmap(Resources.subway_map);
+			Bitmap bitmap = new Bitmap(@"../../Resources/subway-map.jpg");
 			Rectangle r = new Rectangle(0, 0,
 				this.pictureBox1.Size.Width, this.pictureBox1.Size.Height);
 			Form1.graphics.DrawImage(bitmap, r);
