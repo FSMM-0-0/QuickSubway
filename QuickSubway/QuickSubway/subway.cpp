@@ -53,6 +53,15 @@ Subway::Subway()
 		else if (type == '@') {  //图
 			infile >> x >> y >> name;
 
+			//机场线单程特判
+			if (name == "机场线") {
+				graph[x].push_back(make_pair(y, mp_line[name]));
+				node_edge.to = y; node_edge.name = mp_line[name];
+				euler_graph[x][++euler_edge] = node_edge;
+				edge_exist[make_pair(x, y)] = true;
+				continue;
+			}
+
 			//dijkstra
 			graph[x].push_back(make_pair(y, mp_line[name]));
 			graph[y].push_back(make_pair(x, mp_line[name]));

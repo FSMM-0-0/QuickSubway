@@ -10,13 +10,18 @@ namespace UnitTest1
 	TEST_CLASS(UnitTest1)
 	{
 	public:
-		Subway subway;
+		Subway *subway;
+
+		UnitTest1()
+		{
+			subway = new Subway();
+		}
 
 		TEST_METHOD(TestLineRight_1)
 		{
 			string line = "房山线";
 			string ans[15] = { "阎村东", "苏庄", "良乡南关", "良乡大学城西", "良乡大学城", "良乡大学城北", "广阳城", "篱笆房", "长阳", "稻田", "大葆台", "郭公庄" };
-			subway.GetLine(line);
+			subway->GetLine(line);
 			for (int i = 0; i < 12; i++) {
 				cout << unit_test[i] << " " << ans[i] << endl;
 				Assert::AreEqual(unit_test[i], ans[i]);
@@ -27,7 +32,7 @@ namespace UnitTest1
 		{
 			string line = "3号线";
 			string ans = "未找到该线路";
-			subway.GetLine(line);
+			subway->GetLine(line);
 			Assert::AreEqual(unit_test[0], ans);
 		}
 
@@ -37,6 +42,33 @@ namespace UnitTest1
 			char *argv[] = {"QuickSubway.exe", "/b", "良乡大学城北", "魏公村" };
 			Input(argc, argv);
 			string ans = "良乡大学城北\n广阳城\n篱笆房\n长阳\n稻田\n大葆台\n郭公庄 换乘9号线\n丰台科技园\n科怡路\n丰台南路\n丰台东大街\n七里庄\n六里桥\n六里桥东\n北京西站\n军事博物馆\n白堆子\n白石桥南\n国家图书馆 换乘4号线\n魏公村\n";
+			Assert::AreEqual(unit_test[0], ans);
+		}
+
+		TEST_METHOD(TestSingle_14)
+		{
+			int argc = 2;
+			char *argv[] = { "QuickSubway.exe", "/b", "中关村", "中关村" };
+			Input(argc, argv);
+			string ans = "中关村\n";
+			Assert::AreEqual(unit_test[0], ans);
+		}
+
+		TEST_METHOD(TestFly_15)
+		{
+			int argc = 2;
+			char *argv[] = { "QuickSubway.exe", "/b", "2号航站楼", "3号航站楼" };
+			Input(argc, argv);
+			string ans = "2号航站楼\n三元桥\n3号航站楼\n";
+			Assert::AreEqual(unit_test[0], ans);
+		}
+
+		TEST_METHOD(TestFly_16)
+		{
+			int argc = 2;
+			char *argv[] = { "QuickSubway.exe", "/b", "3号航站楼", "2号航站楼" };
+			Input(argc, argv);
+			string ans = "3号航站楼\n2号航站楼\n";
 			Assert::AreEqual(unit_test[0], ans);
 		}
 
