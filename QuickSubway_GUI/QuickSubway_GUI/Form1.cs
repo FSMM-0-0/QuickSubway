@@ -266,7 +266,6 @@ namespace QuickSubway_GUI
 			string[] sArray = ans.Split(' ');
 			int size = sArray.Length;
 			string str = null;
-			int k = 0;
 			for (int i = 1; i < size; i++)
 			{
 				if (map.ContainsKey(sArray[i])) str += "\r\n";
@@ -349,9 +348,12 @@ namespace QuickSubway_GUI
 			Draw draw = new Draw();
 			for(int i = 0;i < size - 1; i++)
 			{
-				draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
-				tBox_output.AppendText(sArray[i] + '\n');
+                draw.DrawPointY(graphics, map[sArray[i]]);
+                //draw.DrawPointY(graphics, Node_Location(map[sArray[i]]));
+                //MessageBox.Show(Node_Location(map[sArray[i]]).X.ToString() + " " + Node_Location(map[sArray[i]]).Y.ToString());
+                tBox_output.AppendText(sArray[i] + '\n');
 			}			
+
 
 		}
 
