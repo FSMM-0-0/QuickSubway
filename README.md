@@ -14,6 +14,10 @@
 
 Microsoft .NET framework
 
+## 成果展示
+
+![全遍历](https://img-blog.csdnimg.cn/20190117001139617.gif)
+
 ## 使用说明
 
 ### 命令行程序
@@ -74,6 +78,3 @@ QuickSubway_GUI.exe /g 知春路
 
 运行 Quick Subway.exe
 
-## 成果展示
-
-![全遍历](https://img-blog.csdnimg.cn/20190117001139617.gif)
